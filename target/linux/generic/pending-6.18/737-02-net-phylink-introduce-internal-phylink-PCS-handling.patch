@@ -180,7 +180,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 +	if (pl->mac_ops->mac_select_pcs) {
 +		pcs = pl->mac_ops->mac_select_pcs(pl->config,
 +						  interface);
-+		pcs_found = !!pcs;
++		pcs_found = !IS_ERR_OR_NULL(pcs);
 +	} else {
 +		list_for_each_entry(pcs, &pl->pcs_list, list) {
 +			if (!phylink_validate_pcs_interface(pcs, interface)) {
@@ -191,7 +191,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 +	}
  
 -	pcs = pl->mac_ops->mac_select_pcs(pl->config, interface);
--	if (!pcs)
+-	if (IS_ERR_OR_NULL(pcs))
 +	if (!pcs_found)
  		return 0;
  
@@ -209,7 +209,8 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 +	 */
 +	} else if (test_bit(state->interface, pl->config->pcs_interfaces)) {
 +		bool pcs_found = false;
-+
+ 
+-		pcs_changed = pl->pcs != pcs;
 +		list_for_each_entry(pcs, &pl->pcs_list, list) {
 +			if (!phylink_validate_pcs_interface(pcs,
 +							    state->interface)) {
@@ -217,8 +218,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 +				break;
 +			}
 +		}
- 
--		pcs_changed = pl->pcs != pcs;
++
 +		if (!pcs_found) {
 +			phylink_err(pl,
 +				    "couldn't find a PCS for %s\n",
@@ -344,7 +344,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	cancel_work_sync(&pl->resolve);
  	kfree(pl);
  }
-@@ -2444,6 +2578,7 @@ static irqreturn_t phylink_link_handler(
+@@ -2458,6 +2592,7 @@ static irqreturn_t phylink_link_handler(
   */
  void phylink_start(struct phylink *pl)
  {
@@ -352,7 +352,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	bool poll = false;
  
  	ASSERT_RTNL();
-@@ -2470,6 +2605,10 @@ void phylink_start(struct phylink *pl)
+@@ -2484,6 +2619,10 @@ void phylink_start(struct phylink *pl)
  
  	pl->pcs_state = PCS_STATE_STARTED;
  
@@ -363,7 +363,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	phylink_enable_and_run_resolve(pl, PHYLINK_DISABLE_STOPPED);
  
  	if (pl->cfg_link_an_mode == MLO_AN_FIXED && pl->link_gpio) {
-@@ -2514,6 +2653,8 @@ EXPORT_SYMBOL_GPL(phylink_start);
+@@ -2528,6 +2667,8 @@ EXPORT_SYMBOL_GPL(phylink_start);
   */
  void phylink_stop(struct phylink *pl)
  {
@@ -372,7 +372,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	ASSERT_RTNL();
  
  	if (pl->sfp_bus)
-@@ -2531,6 +2672,14 @@ void phylink_stop(struct phylink *pl)
+@@ -2545,6 +2686,14 @@ void phylink_stop(struct phylink *pl)
  	pl->pcs_state = PCS_STATE_DOWN;
  
  	phylink_pcs_disable(pl->pcs);

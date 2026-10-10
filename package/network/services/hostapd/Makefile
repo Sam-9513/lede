@@ -91,11 +91,15 @@ CORE_DEPENDS = +ucode +libucode \
 OPENSSL_DEPENDS = +PACKAGE_$(1):libopenssl +PACKAGE_$(1):libopenssl-legacy
 
 DRIVER_MAKEOPTS= \
-	CONFIG_ACS=y CONFIG_DRIVER_NL80211=y \
+	CONFIG_DRIVER_NL80211=y \
 	CONFIG_IEEE80211AC=$(HOSTAPD_IEEE80211AC) \
 	CONFIG_IEEE80211AX=$(HOSTAPD_IEEE80211AX) \
 	CONFIG_IEEE80211BE=$(HOSTAPD_IEEE80211BE) \
 	CONFIG_MBO=$(CONFIG_WPA_MBO_SUPPORT)
+
+ifneq ($(LOCAL_TYPE),supplicant)
+  DRIVER_MAKEOPTS += CONFIG_ACS=y
+endif
 
 ifeq ($(SSL_VARIANT),openssl)
   DRIVER_MAKEOPTS += CONFIG_TLS=openssl CONFIG_SAE=y
@@ -718,11 +722,14 @@ endef
 define Package/hostapd-common/install
 	$(INSTALL_DIR) \
 	  $(1)/etc/capabilities \
+	  $(1)/etc/rc.button \
 	  $(1)/etc/hotplug.d/ieee80211 \
 	  $(1)/etc/init.d $(1)/lib/netifd \
 	  $(1)/usr/share/acl.d
 	$(INSTALL_BIN) ./files/dhcp-get-server.sh $(1)/lib/netifd/dhcp-get-server.sh
+	$(INSTALL_DATA) ./files/hostapd.sh $(1)/lib/netifd/hostapd.sh
 	$(INSTALL_BIN) ./files/wpad.init $(1)/etc/init.d/wpad
+	$(INSTALL_BIN) ./files/wps-hotplug.sh $(1)/etc/rc.button/wps
 	$(INSTALL_DATA) ./files/wpad_acl.json $(1)/usr/share/acl.d
 	$(INSTALL_DATA) ./files/wpad.json $(1)/etc/capabilities
 endef
