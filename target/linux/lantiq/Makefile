@@ -7,10 +7,11 @@ include $(TOPDIR)/rules.mk
 BOARD:=lantiq
 BOARDNAME:=Lantiq
 FEATURES:=squashfs
-SUBTARGETS:=xrx200 xrx200_legacy xway xway_legacy falcon ase
+# ase and xway_legacy only provide firmware partitions below 4 MiB.
+SUBTARGETS:=xrx200 xrx200_legacy xway falcon
 
-KERNEL_PATCHVER:=5.4
-KERNEL_TESTING_PATCHVER:=6.18
+KERNEL_PATCHVER:=6.18
+KERNEL_TESTING_PATCHVER:=5.4
 
 define Target/Description
 	Build firmware images for Lantiq SoC
