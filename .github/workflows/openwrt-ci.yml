@@ -59,11 +59,17 @@ jobs:
       - name: Update feeds
         run: |
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
+          echo 'src-git passwall_packages https://github.com' >> ./feeds.conf.default
+          echo 'src-git passwall https://github.com' >> ./feeds.conf.default
+          echo 'src-git lucky https://github.com' >> ./feeds.conf.default
+          echo 'src-git openlist https://github.com' >> ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Generate configuration file
-        run: make defconfig
+        run: |
+          cp -f my.config .config
+          make defconfig
 
       - name: Download packages
         run: make download -j16
