@@ -1,10 +1,10 @@
-name: OpenWrt-CI
+name: My-OpenWrt
 
 on:
   # 定时触发（如需开启，删除下面两行的 # 号即可）
   # schedule:
   #   - cron: '0 20 * * *'
-  # 允许在 GitHub 网页端手动点击运行
+  repository_dispatch:
   workflow_dispatch:
 
 permissions:
@@ -27,11 +27,19 @@ jobs:
           large-packages: true
           swap-storage: true
 
-      # 2. 拉取当前分支代码
+      # 2. 拉取你当前分支，并在云端临时合并上游最新源码（绝不污染你的仓库）
       - name: Checkout OpenWrt
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Sync Upstream Source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@://github.com"
+          git remote add upstream https://github.com
+          git fetch upstream master --depth=1
+          git merge upstream/master --allow-unrelated-histories -m "Sync upstream" || true
 
       # 3. 安装 Lean LEDE 编译依赖
       - name: Initialization environment
@@ -44,15 +52,16 @@ jobs:
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "Asia/Shanghai"
 
-      # 4. 初始化并安装自带 Feeds
+      # 4. 更新并安装 Feeds（如需追加第三方源，直接在这里写 echo >> feeds.conf.default）
       - name: Update feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # 5. 加载你的 my.config 配置文件
+      # 5. 锁定 7.3 内核并加载你的 my.config
       - name: Generate configuration file
         run: |
+          sed -i 's/KERNEL_PATCHVER:=.*/KERNEL_PATCHVER:=7.3/g' target/linux/x86/Makefile
           cp -f my.config .config
           make defconfig
 
