@@ -33,15 +33,15 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Sync Upstream Source
-        run: |
-          HOST="github.com"
-          REPO="coolsnowwolf/lede.git"
-          git config user.name "github-actions[bot]"
-          git config user.email "zsc71ok@gmail.com"
-          git remote add upstream "https://${HOST}/${REPO}"
-          git fetch upstream master --depth=1
-          git merge upstream/master --allow-unrelated-histories -m "Sync upstream" || true
+#      - name: Sync Upstream Source
+#        run: |
+#          HOST="github.com"
+#          REPO="coolsnowwolf/lede.git"
+#          git config user.name "github-actions[bot]"
+#          git config user.email "zsc71ok@gmail.com"
+#          git remote add upstream "https://${HOST}/${REPO}"
+#          git fetch upstream master --depth=1
+#          git merge upstream/master --allow-unrelated-histories -m "Sync upstream" || true
 
 
       # 3. 安装 Lean LEDE 编译依赖
